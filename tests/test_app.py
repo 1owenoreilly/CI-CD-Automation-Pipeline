@@ -1,6 +1,31 @@
-def func(x):
-    return x + 3
+import pytest
+from app import app
 
 
-def test_answer():
-    assert func(3) == 5
+@pytest.fixture
+def client():
+    """Create a test client for the Flask app."""
+    app.config['TESTING'] = True
+    with app.test_client() as client:
+        yield client
+
+
+def test_home(client):
+    """Test the home endpoint returns a welcome message."""
+    response = client.get('/')
+    assert response.status_code == 200
+    assert response.json == {"message": "Welcome to my CI/CD demo API!"}
+
+
+def test_add_numbers(client):
+    """Test the add endpoint with valid inputs."""
+    response = client.get('/add?a=2&b=3')
+    assert response.status_code == 200
+    assert response.json == {"result": 5.0}
+
+
+def test_add_invalid_input(client):
+    """Test the add endpoint with invalid inputs."""
+    response = client.get('/add?a=invalid&b=3')
+    assert response.status_code == 400
+    assert "error" in response.json
