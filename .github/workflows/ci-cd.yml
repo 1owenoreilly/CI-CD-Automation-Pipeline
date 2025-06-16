@@ -12,7 +12,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 10 # Prevent hanging builds
+    timeout-minutes: 10
     steps:
       # Checkout the code
       - name: Checkout code
@@ -22,7 +22,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11' # Matches original guidance
+          python-version: '3.11'
 
       # Cache pip dependencies
       - name: Cache pip
@@ -48,6 +48,7 @@ jobs:
       # Run tests with pytest
       - name: Run tests
         run: |
+          export PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE
           pytest --verbose
 
       # Notify Slack on test or linting failure
@@ -55,7 +56,8 @@ jobs:
         if: failure()
         uses: slackapi/slack-github-action@v1.27.0
         with:
-          slack-bot-token: ${{ secrets.SLACK_WEBHOOK_URL }}
+          slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          channel-id: 'ci-cd-notifications' # Replace with your Slack channel name
           payload: |
             {
               "text": "🛑 CI/CD Pipeline Failed: Tests or Linting for ${{ github.repository }} on branch ${{ github.ref_name }}. Check GitHub Actions for details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
@@ -63,8 +65,8 @@ jobs:
 
   build-and-push:
     runs-on: ubuntu-latest
-    timeout-minutes: 10 # Prevent hanging builds
-    needs: test # Run only if tests pass
+    timeout-minutes: 10
+    needs: test
     steps:
       # Checkout the code
       - name: Checkout code
@@ -106,7 +108,8 @@ jobs:
         if: success()
         uses: slackapi/slack-github-action@v1.27.0
         with:
-          slack-bot-token: ${{ secrets.SLACK_WEBHOOK_URL }}
+          slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          channel-id: 'ci-cd-notifications' # Replace with your Slack channel name
           payload: |
             {
               "text": "✅ CI/CD Pipeline Succeeded: Docker image for ${{ github.repository }} pushed to registry. Tag: ${{ secrets.DOCKER_USERNAME }}/my-app:${{ github.sha }}. Details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
@@ -117,7 +120,8 @@ jobs:
         if: failure()
         uses: slackapi/slack-github-action@v1.27.0
         with:
-          slack-bot-token: ${{ secrets.SLACK_WEBHOOK_URL }}
+          slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          channel-id: 'ci-cd-notifications' # Replace with your Slack channel name
           payload: |
             {
               "text": "🛑 CI/CD Pipeline Failed: Docker build or push for ${{ github.repository }} on branch ${{ github.ref_name }}. Check GitHub Actions for details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
