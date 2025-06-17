@@ -21,5 +21,10 @@ def add_numbers():
         return jsonify({"error": "Invalid input, please provide numbers"}), 400
 
 
+@app.route('/multiply/<float:a>/<float:b>')
+def multiply(a, b):
+    return {'result': a * b}
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
