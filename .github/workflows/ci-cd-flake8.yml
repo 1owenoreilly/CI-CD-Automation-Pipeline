@@ -40,7 +40,11 @@ jobs:
           pip install -r requirements.txt
           pip install flake8 pytest
 
-     
+      # Run linting with flake8
+      - name: Run linter
+        run: |
+          flake8 . --max-line-length=88 --extend-ignore=E203
+
       # Run tests with pytest
       - name: Run tests
         run: |
